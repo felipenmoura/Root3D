@@ -1,0 +1,695 @@
+/*
+	Developed by Felipe N. Moura <http://felipenmoura.org>
+	Under MIT license.
+	
+	Well...I gotta add, jQueryUI has some issues due to the z-index property on
+	modal windows, what freezes form inputs...that's why you may find some "weird"
+	z-indexes all around the code!
+	Also...Google Chrome has problems renderind 3D, what's quite a shame! I hope they
+	fix it soon, so we can all play together with CSS 3D :)
+*/
+@-webkit-keyframes spinningH{
+	from {
+		-webkit-transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+	}
+	to {
+		-webkit-transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-386deg) rotateZ(3deg);
+	}
+}
+@-moz-keyframes spinningH{
+	from {
+		-moz-transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+	}
+	to {
+		-moz-transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-386deg) rotateZ(3deg);
+	}
+}
+
+@-o-keyframes spinningH{
+	from {
+		-o-transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+	}
+	to {
+		-o-transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-386deg) rotateZ(3deg);
+	}
+}
+@-ms-keyframes spinningH{
+	from {
+		-ms-transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+	}
+	to {
+		-ms-transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-386deg) rotateZ(3deg);
+	}
+}
+@keyframes spinningH{
+	from {
+		transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+	}
+	to {
+		transform: translateX(0px) translateY(0px) translateZ(-200px) rotateX(-14deg) rotateY(-386deg) rotateZ(3deg);
+	}
+}
+
+html, body{
+	margin: 0px;
+	padding: 0px;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+}
+body{
+	background:    -moz-linear-gradient(bottom, #000, #777);
+	background: -webkit-linear-gradient(bottom, #000, #777);
+	background:     -ms-linear-gradient(bottom, #000, #777);
+	background:      -o-linear-gradient(bottom, #000, #777);
+	background:         linear-gradient(bottom, #000, #777);
+}
+*{
+	font-family: Segoe UI,Arial,sans-serif;
+	overflow: visible;
+}
+#minimizeBtn{
+	width: 20px;
+	border: none;
+	float: right;
+}
+#minimizeBtn:not(:hover){
+	background: none;
+}
+#colorPickerBG{
+}
+#colorPickerTrigger-bg{
+	width: 30px;
+	height: 30px;
+	border: solid 3px white;
+	background: #ff0000;
+}
+#colorPickerTrigger-border{
+	width: 30px;
+	height: 30px;
+	border: solid 3px white;
+	background: #000000;
+}
+.rangeValueLabel{
+	width: 30px;
+	height: 9px;
+	padding: 0px;
+	text-align: right;
+	margin-top: 10px !IMPORTANT;
+	margin-right: 2px !IMPORTANT;
+	font-size: 9px !IMPORTANT;
+}
+.range{
+	width: 120px;
+	height: 7px;
+	margin-right: 10px;
+}
+.verti-slider{
+	float:left;
+	border-right: dashed 1px gray;
+	width: 60px;
+	margin-right: 4px;
+	text-align: center;
+}
+.verti-slider:last-child{
+	border: none;
+}
+/* changing some crazy useless jqueryui default option */
+.ui-slider-handle{
+	/*left: 20px;
+	width: 10px !IMPORTANT;
+	height: 18px !IMPORTANT;*/
+	width: 12px !IMPORTANT;
+	height: 10px !IMPORTANT;
+	border-radius: 10px !IMPORTANT;
+	   -moz-box-shadow: 0px 0px 30px 4px white !IMPORTANT;
+	-webkit-box-shadow: 0px 0px 30px 4px white !IMPORTANT;
+	    -ms-box-shadow: 0px 0px 30px 4px white !IMPORTANT;
+	     -o-box-shadow: 0px 0px 30px 4px white !IMPORTANT;
+	        box-shadow: 0px 0px 30px 4px white !IMPORTANT;
+}
+.ui-slider.ui-slider-horizontal{
+	margin-top: 6px !IMPORTANT;
+	height: 5px;
+}
+.ui-slider.ui-slider-vertical{
+	margin-top: 6px !IMPORTANT;
+	/*height: 10px !IMPORTANT;*/
+	width: 5px !IMPORTANT;
+	margin: auto;
+}
+.ui-button-text{
+	font-size: 12px !IMPORTANT;
+	padding: 1px 4px !IMPORTANT;
+}
+input.ui-button{
+	padding: 0px 0px !IMPORTANT;
+}
+.ui-widget{
+	font-size: 14px !IMPORTANT;
+}
+.ui-accordion-header a{
+	margin-top: -4px;
+	padding-left: 25px;
+	height: 15px;
+}
+.ui-widget-overlay{
+    z-index: 99998 !IMPORTANT;
+}
+.ui-dialog{
+    z-index: 99999 !IMPORTANT;
+}
+/*             ///              ///            ///            */
+#stage, #container{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	
+	   -moz-backface-visibility: visible;
+	-webkit-backface-visibility: visible;
+	    -ms-backface-visibility: visible;
+	     -o-backface-visibility: visible;
+	        backface-visibility: visible;
+	
+	/*-webkit-perspective: 1000;
+	-webkit-backface-visibility: visible;*/
+}
+#container{
+	-moz-perspective: 1920px;
+	-moz-transform-style: preserve-3d;
+	-moz-backface-visibility: visible;
+	-moz-transform-origin: 50% 50%;
+	
+	/* this doesn't work for google chrome! can't understand why! */
+	-webkit-transform-origin: 50% 50%;
+	-webkit-perspective: 100%; /* so, google chrome wont have zoom...sorry! */
+	-webkit-transform-style: preserve-3d;
+	-webkit-backface-visibility: visible;
+	
+	
+	
+	
+	-ms-perspective: 1920px;
+	-ms-transform-style: preserve-3d;
+	-ms-backface-visibility: visible;
+	-ms-transform-origin: 50% 50%;
+	
+	-o-perspective: 1920px;
+	-o-transform-style: preserve-3d;
+	-o-backface-visibility: visible;
+	-o-transform-origin: 50% 50%;
+	
+	/* this doesn't work for google chrome! can't understand why! */
+	transform-origin: 50% 50%;
+	perspective: 100%; /* so, google chrome wont have zoom...sorry! */
+	transform-style: preserve-3d;
+	backface-visibility: visible;
+	
+	
+	
+	
+	width: 100%;
+	height: 100%;
+}
+
+#containerParent{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	-moz-transform-style: preserve-3d;
+	-moz-backface-visibility: visible;
+	-moz-transform-origin: 50% 50%;
+	
+	-webkit-transform-style: preserve-3d;
+	-webkit-backface-visibility: visible;
+	-webkit-transform-origin: 50% 50%;
+	
+	-ms-transform-style: preserve-3d;
+	-ms-backface-visibility: visible;
+	-ms-transform-origin: 50% 50%;
+	
+	-o-transform-style: preserve-3d;
+	-o-backface-visibility: visible;
+	-o-transform-origin: 50% 50%;
+	
+	transform-style: preserve-3d;
+	backface-visibility: visible;
+	transform-origin: 50% 50%;
+	
+	width: 1000%;
+	height: 1000%;
+	z-index: 1;
+}
+
+#stage{
+	-moz-perspective: 100;
+	-o-perspective: 100;
+	-ms-perspective: 100;
+	perspective: 100;
+	-webkit-perspective: 1920;
+	position: absolute;
+	width: 1000%;
+	height: 1000%;
+	z-index: 1;
+	-moz-backface-visibility: visible;
+	-moz-transform-origin: 50% 50%;
+	-moz-transform-style: preserve-3d;
+	-moz-transform: translateX(0px) translateY(0px) translateZ(770px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+	
+	-webkit-backface-visibility: visible;
+	-webkit-transform-origin: 50% 50%;
+	-webkit-transform-style: preserve-3d;
+	-webkit-transform: translateX(0px) translateY(0px) translateZ(770px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+	
+	-ms-backface-visibility: visible;
+	-ms-transform-origin: 50% 50%;
+	-ms-transform-style: preserve-3d;
+	-ms-transform: translateX(0px) translateY(0px) translateZ(770px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+	
+	-o-backface-visibility: visible;
+	-o-transform-origin: 50% 50%;
+	-o-transform-style: preserve-3d;
+	-o-transform: translateX(0px) translateY(0px) translateZ(770px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+	
+	backface-visibility: visible;
+	transform-origin: 50% 50%;
+	transform-style: preserve-3d;
+	transform: translateX(0px) translateY(0px) translateZ(770px) rotateX(-14deg) rotateY(-26deg) rotateZ(3deg);
+}
+.Xaxis{
+	width: 20%;
+	height: 2px;
+	/*border-top: dashed 1px red;*/
+	background-color: red;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	   -moz-backface-visibility: visible;
+	   -ms-backface-visibility: visible;
+	   -o-backface-visibility: visible;
+	   backface-visibility: visible;
+	-webkit-backface-visibility: visible;
+}
+#stage .Xaxis:nth-child(2){
+	   -moz-transform: rotateX(90deg);
+	   -ms-transform: rotateX(90deg);
+	   -o-transform: rotateX(90deg);
+	   transform: rotateX(90deg);
+	-webkit-transform: rotateX(90deg);
+}
+
+.Yaxis{
+	width: 2px;
+	height: 20%;
+	/*border-right: dashed 1px blue;*/
+	background-color: blue;
+	position: absolute;
+	left: 50%;
+	top: 30%;
+	margin-left: 1px;
+	   -moz-backface-visibility: visible;
+	   -o-backface-visibility: visible;
+	   backface-visibility: visible;
+	   -ms-backface-visibility: visible;
+	-webkit-backface-visibility: visible;
+}
+#stage .Yaxis:nth-child(4){
+	   -moz-transform: rotateY(90deg);
+	   -ms-transform: rotateY(90deg);
+	   -o-transform: rotateY(90deg);
+	   transform: rotateY(90deg);
+	-webkit-transform: rotateY(90deg);
+}
+
+.Zaxis{
+	width: 2px;
+	height: 40%;
+	/*border-right: dashed 1px green;*/
+	background-color: green;
+	position: absolute;
+	margin-left: 1px;
+	left: 50%;
+	top: 30%;
+	   -moz-transform: rotateX(-90deg) translateY(-50%);
+	   -ms-transform: rotateX(-90deg) translateY(-50%);
+	   -o-transform: rotateX(-90deg) translateY(-50%);
+	   transform: rotateX(-90deg) translateY(-50%);
+	-webkit-transform: rotateX(-90deg) translateY(-50%);
+}
+#stage .Zaxis:nth-child(6){
+	   -moz-transform: rotateX(-90deg) translateY(-50%) translateX(-50%) rotateY(90deg) !IMPORTANT;
+	   -ms-transform: rotateX(-90deg) translateY(-50%) translateX(-50%) rotateY(90deg) !IMPORTANT;
+	   -o-transform: rotateX(-90deg) translateY(-50%) translateX(-50%) rotateY(90deg) !IMPORTANT;
+	   transform: rotateX(-90deg) translateY(-50%) translateX(-50%) rotateY(90deg) !IMPORTANT;
+	-webkit-transform: rotateX(-90deg) translateY(-50%) translateX(-50%) rotateY(90deg) !IMPORTANT;
+}
+
+#grade{
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	background-image: url(img/grade.png);
+	   -moz-backface-visibility: visible;
+	   -ms-backface-visibility: visible;
+	   -o-backface-visibility: visible;
+	   backface-visibility: visible;
+	-webkit-backface-visibility: visible;
+	   -moz-transform: translateX(-50%) translateY(-50%) rotateX(90deg) rotateY(0deg) rotateZ(0deg) scale(3); width: 5.3cm; height: 5.3cm; opacity: 1; 
+	   -ms-transform: translateX(-50%) translateY(-50%) rotateX(90deg) rotateY(0deg) rotateZ(0deg) scale(3); width: 5.3cm; height: 5.3cm; opacity: 1; 
+	   -o-transform: translateX(-50%) translateY(-50%) rotateX(90deg) rotateY(0deg) rotateZ(0deg) scale(3); width: 5.3cm; height: 5.3cm; opacity: 1; 
+	   transform: translateX(-50%) translateY(-50%) rotateX(90deg) rotateY(0deg) rotateZ(0deg) scale(3); width: 5.3cm; height: 5.3cm; opacity: 1; 
+	-webkit-transform: translateX(-50%) translateY(-50%) rotateX(90deg) rotateY(0deg) rotateZ(0deg) scale(3); width: 5.3cm; height: 5.3cm; opacity: 1; 
+}
+
+.spinning{
+	-moz-animation:    spinningH 6s infinite linear;
+	-ms-animation:    spinningH 6s infinite linear;
+	-o-animation:    spinningH 6s infinite linear;
+	animation:    spinningH 6s infinite linear;
+	-webkit-animation: spinningH 6s infinite linear;
+}
+#tools{
+	border-radius: 10px;
+	border: solid 2px gray;
+	padding: 4px;
+	background-color: #fff;
+	position: fixed;
+	left: 0px;
+	z-index: 99998;
+	width: 750px;
+	overflow: hidden;
+	opacity: 0.9;
+	box-shadow: 20px 20px 50px 20px black;
+}
+#elementPropertiesParent{
+}
+#elementProperties{
+	margin: auto;
+	padding-top: 6px !IMPORTANT;
+	/*height: 190px;*/
+	height: 290px;
+}
+.element{
+	position: absolute;
+}
+.selection, .selected{
+	box-shadow: 0px 0px 10px 5px yellow;
+	/*position: absolute;
+	background-color: transparent !IMPORTANT;
+	border: none !IMPORTANT;*/
+	opacity: 0.2 !IMPORTANT;
+}
+.hiddenEl{
+	display: none;
+}
+
+#elementStylesLeftPannel{
+	float: left;
+}
+#elementStylesLeftPannel ul{
+	
+	list-style: none;
+	margin: 0px;
+	margin-left: -45px;
+}
+#elementStylesLeftPannel ul li{
+	margin: 2px;
+	border: solid 1px gray;
+	border-radius: 4px 0px 0px 4px;
+	padding: 3px;
+	width: 100px;
+	cursor: default;
+}
+#elementStylesLeftPannel ul li.active{
+	background: #22f;
+	box-shadow: inset -5px 0px 10px black;
+}
+#elementStylesLeftPannel ul li:hover:not(.active){
+	border: solid 1px #F58400 !IMPORTANT;
+}
+#elementStylesRightPannel>div:not(.active){
+	display: none;
+}
+#elementStylesRightPannel *:not(.colorpicker_field)>input{
+	height: 10px !IMPORTANT;
+	font-size: 11px;
+	width: 200px;
+}
+#element-BorderRadius input{
+	width: 20px !IMPORTANT;
+	text-align: right;
+}
+#elementStylesRightPannel textarea{
+	font-size: 11px;
+	width: 200px;
+}
+
+#elementStylesRightPannel{
+	float: left;
+	margin: 0px;
+	border: solid 1px gray;
+	margin-left: -3px;
+	margin-top: -10px;
+	width: 580px;
+	height: 180px;
+}
+#element-borderWidth-value{
+	width: 40px !IMPORTANT;
+	text-align: right;
+}
+
+.green-triangle{
+	width: 0px;
+	height: 0px;
+	border: solid;
+	border-color: transparent transparent green transparent;
+	border-width: 20px 10px 20px 10px;
+	margin-left: -10px;
+	margin-top: -30px;
+}
+.blue-triangle{
+	width: 0px;
+	height: 0px;
+	border: solid;
+	border-color: transparent transparent blue transparent;
+	border-width: 20px 10px 20px 10px;
+	margin-left: -10px;
+	margin-top: -30px;
+}
+.red-triangle{
+	width: 0px;
+	height: 0px;
+	border: solid;
+	border-color: transparent transparent red transparent;
+	border-width: 20px 10px 20px 10px;
+	margin-left: -10px;
+	margin-top: -20px;
+	   -moz-transform: rotateZ(90deg);
+	   -ms-transform: rotateZ(90deg);
+	   -o-transform: rotateZ(90deg);
+	   transform: rotateZ(90deg);
+	-webkit-transform: rotateZ(90deg);
+	position: relative;
+	right: -104%;
+}
+
+#footer{
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    color: #333;
+    font-size: 12px;
+	z-index: 10000;
+    border-top: solid 1px #fff;
+    box-shadow: 0px 0px 6px white;
+    width: 100%;
+    padding-left: 12px;
+    
+    background:    linear-gradient(bottom, #fff, #777);
+    background:    -moz-linear-gradient(bottom, #fff, #777);
+    background:    -ms-linear-gradient(bottom, #fff, #777);
+    background:    -o-linear-gradient(bottom, #fff, #777);
+	background: -webkit-linear-gradient(bottom, #fff, #777);
+}
+#footer a{
+    text-decoration: none;
+    font-weight: bold;
+    color: black;
+}
+#generalToolsTrigger{
+    height: 19px !IMPORTANT;
+    width: 20px !IMPORTANT;
+    padding-left: 0px !IMPORTANT;
+    float: left;
+    background-image: url(../img/gear1.png);
+    border: none;
+    margin-top: 2px;
+    cursor: pointer;
+}
+#generalToolsMenu{
+    position: absolute;
+    background-color: rgba(210, 210, 210, 0.9);
+    border: solid 1px white;
+    border-top: none;
+    box-shadow: 0px 0px 6px white, inset 0px 20px 40px #444;
+    padding-top: 6px;
+    
+    background:    linear-gradient(top, rgba(100, 100, 100, 0.9), rgba(200, 200, 200, 0.9));
+    background:    -moz-linear-gradient(top, rgba(100, 100, 100, 0.9), rgba(200, 200, 200, 0.9));
+    background:    -o-linear-gradient(top, rgba(100, 100, 100, 0.9), rgba(200, 200, 200, 0.9));
+    background:    -ms-linear-gradient(top, rgba(100, 100, 100, 0.9), rgba(200, 200, 200, 0.9));
+    background: -webkit-linear-gradient(top, rgba(100, 100, 100, 0.9), rgba(200, 200, 200, 0.9));
+}
+#generalToolsMenu ul{
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+#generalToolsMenu ul li{
+    padding-left: 36px;
+    padding-right: 8px;
+    text-align: right;
+    margin-bottom: 4px;
+}
+#generalToolsMenu ul li:hover{
+    cursor: pointer;
+    
+    background:    linear-gradient(left, transparent 10%, #36f);
+    background:    -moz-linear-gradient(left, transparent 10%, #36f);
+    background:    -ms-linear-gradient(left, transparent 10%, #36f);
+    background:    -o-linear-gradient(left, transparent 10%, #36f);
+    background: -webkit-linear-gradient(left, transparent 10%, #36f);
+}
+#modals{
+    display: none;
+}
+#feedbackPannel input, #feedbackPannel textarea{
+	position: inline;
+	z-index: 99999 !IMPORTANT;
+}
+#status{
+	float: right;
+	padding-right: 20px;
+}
+.loading{
+	padding-left: 30px;
+	background-image: url(../img/loading.gif);
+	background-repeat: no-repeat;
+	background-position: 8px 5px;
+}
+#projectList{
+	max-height: 136px;
+	overflow-y: auto;
+}
+#projectList ol{
+	list-style: none;
+	margin: 0px;
+	padding: 0px;
+}
+#demoList ol{
+	list-style: none;
+	margin: 0px;
+	padding: 0px;
+}
+#projectList>ol>li, #demoList>ol>li{
+	cursor: pointer;
+}
+.projectSelected{
+	background: #F39814 !IMPORTANT;
+}
+
+#helpShortcutList{
+	margin: auto;
+	margin-bottom: 12px;
+}
+#helpShortcutList tr:hover td{
+	border-top: solid 1px white;
+	border-bottom: solid 1px white;
+}
+#helpShortcutList tr td{
+	cursor: default;
+	border-top: solid 1px transparent;
+	border-bottom: solid 1px transparent;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+#helpShortcutList tr td:nth-child(1){
+	text-align: right;
+	background:    linear-gradient(left, transparent 10%, #36f);
+	background:    -moz-linear-gradient(left, transparent 10%, #36f);
+	background:    -ms-linear-gradient(left, transparent 10%, #36f);
+	background:    -o-linear-gradient(left, transparent 10%, #36f);
+	background: -webkit-linear-gradient(left, transparent 10%, #36f);
+}
+#helpShortcutList tr td:nth-child(2){
+	background:    linear-gradient(right, transparent 10%, #F39814);
+	background:    -moz-linear-gradient(right, transparent 10%, #F39814);
+	background:    -ms-linear-gradient(right, transparent 10%, #F39814);
+	background:    -o-linear-gradient(right, transparent 10%, #F39814);
+	background: -webkit-linear-gradient(right, transparent 10%, #F39814);
+}
+
+#tooltipBalloon{
+	background-color: #fec;
+	padding: 10px;
+	position: absolute;
+	left: 15px;
+	top: 50px;
+	z-index: 99993;
+	border: solid 1px #000;
+	border-radius: 12px;
+	box-shadow: 20px 20px 20px black;
+	display: none;
+	cursor: default;
+}
+#tooltipBalloon #arrow{
+	border-style: solid;
+	border-width: 10px 15px 25px 15px;
+	border-color: transparent transparent #000 transparent !IMPORTANT;
+	padding: 0px;
+	margin: 0px;
+	width: 0px;
+	position: absolute;
+	margin-top: -45px;
+	margin-left: -8px;
+	
+	   -moz-transform: skew(45deg);
+	   -ms-transform: skew(45deg);
+	   -o-transform: skew(45deg);
+	   transform: skew(45deg);
+	-webkit-transform: skew(45deg);
+}
+#tooltipBalloon #arrow:before{
+	border-style: solid;
+	border-width: 8px 16px 26px 17px;
+	border-color: transparent transparent #fec transparent !IMPORTANT;
+	padding: 0px;
+	margin: 0px;
+	width: 0;
+	position: absolute;
+	content: "";
+	margin-left: -17px;
+	margin-top: -5px;
+}
+
+.fb-like{
+	float: left;
+	width: 310px;
+	margin-left: 4px;
+	margin-right: 4px;
+}
+.ui-widget-overlay{
+	opacity: 1 !IMPORTANT;
+	width: 100% !IMPORTANT;
+	height: 100% !IMPORTANT;
+	background:    linear-gradient(-45deg, rgba(0, 0, 0, 1) 20%, rgba(20, 20, 20, 1) 50%, rgba(20, 20, 20, 1) 54%, rgba(10, 10, 10, 1) 54%) !IMPORTANT;
+	background:    -moz-linear-gradient(-45deg, rgba(0, 0, 0, 1) 20%, rgba(20, 20, 20, 1) 50%, rgba(20, 20, 20, 1) 54%, rgba(10, 10, 10, 1) 54%) !IMPORTANT;
+	background:    -ms-linear-gradient(-45deg, rgba(0, 0, 0, 1) 20%, rgba(20, 20, 20, 1) 50%, rgba(20, 20, 20, 1) 54%, rgba(10, 10, 10, 1) 54%) !IMPORTANT;
+	background:    -o-linear-gradient(-45deg, rgba(0, 0, 0, 1) 20%, rgba(20, 20, 20, 1) 50%, rgba(20, 20, 20, 1) 54%, rgba(10, 10, 10, 1) 54%) !IMPORTANT;
+	background: -webkit-linear-gradient(-45deg, rgba(0, 0, 0, 1) 20%, rgba(20, 20, 20, 1) 50%, rgba(20, 20, 20, 1) 54%, rgba(10, 10, 10, 1) 54%) !IMPORTANT;
+}
+.fb_ltr{
+	width: 130px !IMPORTANT;
+}
